@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+
+require "optparse"
+require "pathname"
+
+require_relative "../lib/pack"
+
+options = {}
+
+parser = OptionParser.new do |opt|
+  opt.on "-a", "--add <path>" do |path|
+    options[:add] = Pathname.new(path)
+  end
+
+  opt.on "-e", "--export <path>" do |path|
+    options[:export] = Pathname.new(path)
+  end
+
+  opt.on "-v", "--version <n>", Integer do |version|
+    options[:version] = version
+  end
+
+  opt.on "-l", "--list" do
+    options[:list] = true
+  end
+end
+
+parser.parse!
+
+pack = Pack.new(Pathname.new(ARGV[0]))
+
+if options[:add]
+  pack.add(File.read(options[:add]))
+end
+
+if options[:export]
+  flags = File::RDWR | File::CREAT | File::TRUNC
+
+  File.open(options[:export], flags) do |file|
+    file.write(pack.export(options[:version]))
+  end
+end
+
+if options[:list]
+  pack.list.each_with_index do |entry, i|
+    puts "\t%d.\t%s\t%s" % [
+      i + 1,
+      entry.time.strftime("%H:%M:%S, %a %d %b %Y"),
+      entry.full_size.to_s.rjust(8, " ")
+    ]
+  end
+end
