@@ -55,6 +55,7 @@ class Pack
 
     footer = [@version, @table.size].pack(FOOTER_FORMAT)
     @file.write(footer)
+    @file.truncate(@file.pos)
   end
 
   def export(version = nil)
